@@ -81,10 +81,12 @@ func (s *upstart) Install() error {
 
 	var to = &struct {
 		*Config
-		Path string
+		Path        string
+		Environment map[string]string
 	}{
-		s.Config,
-		path,
+		Config:      s.Config,
+		Path:        path,
+		Environment: s.Option.stringMap(optionEnvironment, optionEnvironmentDefault),
 	}
 
 	return s.template().Execute(f, to)
@@ -162,6 +164,12 @@ respawn limit 10 5
 umask 022
 
 console none
+
+{{if .Environment}}
+{{range $key, $value := .Environment}}
+env {{$key}}={{$value}}
+{{end}}
+{{end}}
 
 pre-start script
     test -x {{.Path}} || { stop; exit 0; }
